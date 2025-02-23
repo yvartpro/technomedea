@@ -84,6 +84,13 @@ const App = () => {
     })
   }, [setCartItems])
 
+  //clear cart
+
+  const clearCart = useCallback(() => {
+    setCartItems([]); 
+    localStorage.removeItem('cart'); 
+  }, []);
+
   //get categories
   const [categories, setCategories] = useState([])
   async function getCategories (){
@@ -102,7 +109,7 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <Header cartItems={cartItems} categories={categories} onCartOpen={openCart} />
+      <Header cartItems={cartItems} categories={categories} onCartOpen={openCart}/>
       <Routes>
         <Route path="/" element={<>
             <Banner />
@@ -126,6 +133,7 @@ const App = () => {
         onRemoveFromCart={removeFromCart}
         onUpdateQuantity={updateQuantity}
         open={isCartOpen}
+        clearCart={clearCart} 
       />
     </BrowserRouter>
   );
