@@ -1,12 +1,18 @@
-import React from 'react'
-import Header from './components/Header'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { useEffect, useState, useCallback } from 'react'
-import CustomBlock from "./components/CustomBlock"
-import BubbleMenu from "./components/BubbleMenu"
-import Banner from "./components/Banner"
-import ProductGrid from "./components/ProductGrid"
-import Cart from './components/Cart' // Assuming this is your cart component
+import React from 'react';
+import Header from './components/Header';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
+import CustomBlock from "./components/CustomBlock";
+import BubbleMenu from "./components/BubbleMenu";
+import Banner from "./components/Banner";
+import ProductGrid from "./components/ProductGrid";
+import Cart from './components/Cart';
+import Dashboard from './components/Dashboard'; // Import the Dashboard component
+import AddItem from './components/AddItem';       // Import the sub-components
+import AddCategory from './components/AddCategory';
+import ProductList from './components/ProductList';
+import Orders from './components/Orders';
+
 
 const App = () => {
   // useEffect(() => {
@@ -97,10 +103,23 @@ const App = () => {
   return (
     <BrowserRouter>
       <Header cartItems={cartItems} categories={categories} onCartOpen={openCart} />
-      <Banner />
-      <CustomBlock />
-      <BubbleMenu />
-      <ProductGrid addToCart={addToCart} />
+      <Routes>
+        <Route path="/" element={<>
+            <Banner />
+            <CustomBlock />
+            <BubbleMenu />
+            <ProductGrid addToCart={addToCart} />
+          </>
+        } />
+
+        {/* Dashboard Routes */}
+        <Route path="/dashboard" element={<Dashboard />}>
+          <Route path="add" element={<AddItem />} />
+          <Route path="add-category" element={<AddCategory />} />
+          <Route path="product-list" element={<ProductList />} />
+          <Route path="orders" element={<Orders />} />
+        </Route>
+      </Routes>
       <Cart
         cartItems={cartItems}
         onClose={closeCart}
@@ -109,7 +128,7 @@ const App = () => {
         open={isCartOpen}
       />
     </BrowserRouter>
-  )
+  );
 }
 
-export default App
+export default App;
