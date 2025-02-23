@@ -1,28 +1,48 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import {
-  Box,
-  Typography,
-  Button,
-  Snackbar,
-  Alert,
-  styled,
-  IconButton,
-  Modal,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
-} from '@mui/material';
-import { DataGrid, GridActionsCellItem } from '@mui/x-data-grid';
-import { CheckCircle as CheckCircleIcon, Cancel as CancelIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import React, { useState, useEffect } from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
+import Modal from '@mui/material/Modal';
+import Button from '@mui/material/Button';
+import Alert from '@mui/material/Alert';
+import { styled } from '@mui/material/styles';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import Divider from '@mui/material/Divider';
+import Snackbar from '@mui/material/Snackbar';
+
+import { CheckCircle as CheckCircleIcon, Cancel as CancelIcon, 
+         Visibility as VisibilityIcon, MoreVert as MoreVertIcon} from '@mui/icons-material';
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  fontWeight: 'bold',
+}));
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [invoices, setInvoices] = useState([]);
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null); // State to hold the image URL
   const [msg, setMsg] = useState('');
   const [sapor, setSapor] = useState('');
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+    const handleClick = (event,invoice) => {
+      setAnchorEl(event.currentTarget);
+      setSelectedInvoice(invoice)
+    };
+    const handleClose = () => {
+      setAnchorEl(null);
+      setSelectedInvoice(null)
+    };
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   useEffect(() => {
     fetchOrderData();
@@ -35,14 +55,10 @@ const Orders = () => {
         throw new Error(resp.statusText);
       }
       const res = await resp.json();
-       if (res && res.orders && Array.isArray(res.orders) && res.invoice && Array.isArray(res.invoice)) {
-        setOrders(res.orders);
-        setInvoices(res.invoice);
-      } else {
-        throw new Error("Invalid data format from API");
-      }
+      setOrders(res.orders);
+      setInvoices(res.invoice);
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      console.error(error);
       setSapor(error.message || 'Failed to fetch orders.');
     }
   };
@@ -54,10 +70,10 @@ const Orders = () => {
   const handleCloseImage = () => {
     setSelectedImage(null);
   };
-
+  // Function to update invoice status
   const updateInvoiceStatus = async (invoiceId, status) => {
-    try {
-      const resp = await fetch('/backend/update_invoice_status.php', {
+      try {
+      const resp = await fetch('https://technomedea.com/backend/update_invoice_status.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ invoice_id: invoiceId, status: status }),
@@ -65,8 +81,10 @@ const Orders = () => {
       if (!resp.ok) throw new Error(resp.statusText);
 
       const res = await resp.json();
+      console.log(res)
       if (res.success) {
         setMsg(res.message);
+        // Update the invoices state and remove the cancelled invoice
         setInvoices((prevInvoices) => {
           if (status === 'cancelled') {
             return prevInvoices.filter((invoice) => invoice.id !== invoiceId);
@@ -86,63 +104,16 @@ const Orders = () => {
     }
   };
 
-  const columns = useMemo(() => [
-    { field: 'id', headerName: 'Invoice ID', width: 80 },
-    { field: 'name', headerName: 'Nom et Prénom', width: 200 },
-    {
-      field: 'items',
-      headerName: 'Articles (QT x P.U)',
-      width: 400,
-      renderCell: (params) => {
-        const invoiceOrders = orders.filter(order => order.invoice_id === params.row.id);
-        return (
-          <List dense>
-            {invoiceOrders.map((order) => {
-              // Check if order and order.photo are defined
-              if (!order || !order.photo) {
-                return <ListItem key="missing-order">Missing Order Data</ListItem>; // Or some other placeholder
-              }
-              return (
-                <ListItem key={order.id}>
-                  <ListItemText
-                    primary={`${order.prod_name} (${order.quantity} x ${Number(order.price).toFixed(2)})`}
-                  />
-                  <IconButton
-                    aria-label="view"
-                    onClick={() => handleViewImage(`/backend/${order.photo}`)}
-                  >
-                    <VisibilityIcon />
-                  </IconButton>
-                </ListItem>
-              );
-            })}
-          </List>
-        );
-      },
-      sortable: false,
-      filterable: false,
-    },
-    {
-      field: 'total',
-      headerName: 'P.T Facture',
-      width: 120,
-      valueGetter: (params) => {
-        const invoiceOrders = orders.filter(order => order.invoice_id === params.row.id);
-        const total = invoiceOrders.reduce((acc, order) => acc + order.quantity * order.price, 0);
-        return total.toFixed(2);
-      },
-    },
-  ], [orders, handleViewImage]);
-
-  const rows = useMemo(() => {
-    return invoices.map(invoice => ({
-      ...invoice,
-      id: String(invoice.id),
-    }));
-  }, [invoices]);
+  const groupedOrders = {};
+  orders.forEach(order => {
+    if (!groupedOrders[order.invoice_id]) {
+      groupedOrders[order.invoice_id] = [];
+    }
+    groupedOrders[order.invoice_id].push(order);
+  });
 
   return (
-    <Box sx={{ height: 700, width: '100%' }}>
+    <Box>
       <Typography variant="h4" sx={{ mb: 2 }}>
         Commandes
       </Typography>
@@ -156,18 +127,112 @@ const Orders = () => {
           {msg}
         </Alert>
       )}
-      <DataGrid
-        rows={rows}
-        columns={columns}
-        disableSelectionOnClick
-        getRowId={(row) => row.id}
-        sx={{
-          '& .MuiDataGrid-row:nth-child(odd)': {
-            backgroundColor: (theme) => theme.palette.action.hover,
-          },
-        }}
-      />
+      <TableContainer component={Paper} sx={{ maxHeight: 600 }}>
+        <Table sx={{ minWidth: 700 }} aria-label="order table" stickyHeader>
+          <TableHead sx={{ backgroundColor: '#f2f2f2' }}>
+            <TableRow>
+              <StyledTableCell># Facture</StyledTableCell>
+              <StyledTableCell>Nom et prénom</StyledTableCell>
+              <StyledTableCell>Articles (QT x P.U)</StyledTableCell>
+              <StyledTableCell>P.T Facture</StyledTableCell>
+              <StyledTableCell>Status</StyledTableCell>
+              <StyledTableCell>Action</StyledTableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {invoices.map((invoice) => (
+              <React.Fragment key={invoice.id}>
+                <TableRow>
+                  <StyledTableCell component="th" scope="row">
+                    {invoice.receipt}
+                  </StyledTableCell>
+                  <TableCell>{invoice.name}</TableCell>
+                  <TableCell>
+                    {groupedOrders[invoice.id] &&
+                      groupedOrders[invoice.id].map((order, index) => (
+                        <React.Fragment key={order.id}>
+                          {order.prod_name} (<Typography component="span" sx={{ fontWeight: 'bold' }}>{order.quantity}</Typography> x <Typography component="span" sx={{ fontWeight: 'bold' }}>{Number(order.price).toFixed(2)}</Typography>)
+                          {index < groupedOrders[invoice.id].length - 1 && (
+                            <Divider style={{ margin: '5px 0', borderTop: '1px dashed #ccc' }} />
+                          )}
+                        </React.Fragment>
+                      ))}
+                  </TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>
+                    {groupedOrders[invoice.id]
+                      ? groupedOrders[invoice.id].reduce((acc, order) => acc + order.quantity * order.price, 0).toFixed(2)
+                      : '0.00'}
+                  </TableCell>
+                  <TableCell>
+                    {invoice.image}
+                  </TableCell>
+                  <TableCell>
+                    <IconButton
+                      aria-label="view"
+                      onClick={() => handleViewImage(`https://technomedea.com/backend/${invoice.image}`)}
+                    >
+                      <VisibilityIcon />
+                    </IconButton>
+                    <div>
+                      <IconButton
+                        aria-label="more"
+                        id="long-button"
+                        aria-controls={open ? 'long-menu' : undefined}
+                        aria-expanded={open ? 'true' : undefined}
+                        aria-haspopup="true"
+                        onClick={(e) => handleClick(e, invoice)}
+                      >
+                          <MoreVertIcon />
+                      </IconButton>
+                      <Menu
+                        id="long-menu"
+                        MenuListProps={{
+                          'aria-labelledby': 'long-button',
+                        }}
+                        anchorEl={anchorEl}
+                        open={selectedInvoice !== null && open}
+                        onClose={handleClose}
+                        PaperProps={{
+                          style: {
+                            maxHeight: 48 * 4.5,
+                            width: '20ch',
+                          },
+                        }}
+                      >
+                        <MenuItem onClick={() => {
+                                       updateInvoiceStatus(invoice.id, 'Valide');handleClose()
+                                     }}>
+                          <ListItemIcon>
+                            <CheckCircleIcon fontSize="small" />
+                          </ListItemIcon>
+                            <Typography variant="body2">
+                              Marquer comme OK
+                            </Typography>
+                        </MenuItem>
+                        <MenuItem onClick={() => {
+                                       updateInvoiceStatus(invoice.id, 'Annulee');handleClose()
+                                     }}>
+                          <ListItemIcon>
+                            <CancelIcon fontSize="small" />
+                          </ListItemIcon>
+                            <Typography variant="body2">
+                              Annuler
+                            </Typography>
+                        </MenuItem>
+                      </Menu>
+                    </div>
+                  </TableCell>
+                </TableRow>
+                <TableRow style={{ borderBottom: '2px solid #ddd' }}>
+                  <TableCell colSpan={5} /> {/* Separator row after each invoice */}
+                </TableRow>
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
+      {/* Modal to display the image */}
       <Modal
         open={Boolean(selectedImage)}
         onClose={handleCloseImage}

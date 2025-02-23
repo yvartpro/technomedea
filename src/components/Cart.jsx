@@ -1,12 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, IconButton, List, ListItem, ListItemAvatar, Avatar,  ListItemText,  useTheme, 
-  useMediaQuery, Button, Slide, TextField,  Alert, styled } from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemAvatar from '@mui/material/ListItemAvatar';
+import Avatar from '@mui/material/Avatar';
+import ListItemText from '@mui/material/ListItemText';
+import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import Button from '@mui/material/Button';
+import Slide from '@mui/material/Slide';
+import TextField from '@mui/material/TextField';
+import Alert from '@mui/material/Alert';
+import { styled } from '@mui/material/styles';
+import Input from '@mui/material/Input';
+
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import LocalShippingIcon from '@mui/icons-material/LocalShipping';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import Input from '@mui/material/Input';
 
 const Cart = ({ cartItems, onClose, onRemoveFromCart, onUpdateQuantity, open, clearCart }) => {
   const theme = useTheme();
