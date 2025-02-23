@@ -1,23 +1,13 @@
 import React from 'react';
-import {
-  Box,
-  Container,
-  IconButton,
-  useMediaQuery,
-  useTheme,
-  Link,
-  Typography,
-} from '@mui/material';
+import { Box, Container, IconButton, useMediaQuery, useTheme, Link, Typography } from '@mui/material';
 import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import desktopBanner from '../assets/banner.png'
+import mobileBanner from '../assets/banner.png'
 
 const Banner = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-
-  // Replace with your actual image URLs
-  const desktopBanner = '/img/banner.png'; // Replace
-  const mobileBanner = '/images/mobile-medical-banner.jpg'; // Replace
 
   const bannerHeight = isMobile ? '50vh' : '30vh';
   const arrowColor = '#707979';
