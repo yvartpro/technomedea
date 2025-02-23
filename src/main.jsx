@@ -8,7 +8,8 @@ import { ThemeProvider,createTheme } from '@mui/material'
 const theme  = createTheme({
   palette: {
     primary: {
-      main: '#074f34', 
+      main: '#a2dcb2', 
+      // main: '#074f34', 
     },
     secondary: {
       main: '#f8f9fa', 
@@ -18,6 +19,13 @@ const theme  = createTheme({
     fontFamily: 'Poppins, Arial, sans-serif',
     color: '#232323 !important'
   },
+  components:{
+    MuiButton: {
+      primary: {
+        main:'#cd3030',
+      }
+    }
+  }
 })
 
 createRoot(document.getElementById('root')).render(
